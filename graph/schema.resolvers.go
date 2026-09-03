@@ -8,7 +8,10 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github/M-b-a-s/e-comm/graph/model"
+	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
 )
 
 // CreateProduct is the resolver for the createProduct field.
@@ -28,12 +31,32 @@ func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (*model
 
 // Products is the resolver for the products field.
 func (r *queryResolver) Products(ctx context.Context) ([]*model.Product, error) {
-	panic(fmt.Errorf("not implemented: Products - products"))
+	products, err := r.Queries.ListProducts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list products: %w", err)
+	}
+
+	result := make([]*model.Product, len(products))
+	for i, product := range products {
+		result[i] = productToModel(product)
+	}
+
+	return result, nil
 }
 
 // Product is the resolver for the product field.
 func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product, error) {
-	panic(fmt.Errorf("not implemented: Product - product"))
+	productID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
+	}
+
+	product, err := r.Queries.GetProductByID(ctx, productID)
+	if err != nil {
+		return nil, fmt.Errorf("get product %d: %w", productID, err)
+	}
+
+	return productToModel(product), nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -47,17 +70,12 @@ type (
 	queryResolver    struct{ *Resolver }
 )
 
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+func productToModel(product repo.Product) *model.Product {
+	return &model.Product{
+		ID:           strconv.FormatInt(product.ID, 10),
+		Name:         product.Name,
+		PriceInCents: product.PriceInCents,
+		Quantity:     product.Quantity,
+		CreatedAt:    product.CreatedAt.Time,
+	}
 }
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
-}
-*/
