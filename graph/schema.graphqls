@@ -1,0 +1,32 @@
+scalar Time
+
+type Product {
+  id: ID!
+  name: String!
+  priceInCents: Int!
+  quantity: Int!
+  createdAt: Time!
+}
+
+input CreateProductInput {
+  name: String!
+  priceInCents: Int!
+  quantity: Int!
+}
+
+input UpdateProductInput {
+  name: String!
+  priceInCents: Int!
+  quantity: Int!
+}
+
+type Query {
+  products: [Product!]!
+  product(id: ID!): Product
+}
+
+type Mutation {
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: ID!, input: UpdateProductInput!): Product!
+  deleteProduct(id: ID!): Product!
+}

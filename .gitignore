@@ -32,3 +32,11 @@ go.work
 
 # Environment files
 .env
+
+
+# Air live-reload output
+/tmp/
+build-errors.log
+
+# Go workspace checksum
+go.work.sum
