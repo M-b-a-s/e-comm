@@ -6,13 +6,21 @@ package repo
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	DeleteProduct(ctx context.Context, id int64) (Product, error)
+	GetCategoryBySlug(ctx context.Context, slug string) (Category, error)
+	GetFeaturedProduct(ctx context.Context) (Product, error)
 	GetProductByID(ctx context.Context, id int64) (Product, error)
+	GetProductBySlug(ctx context.Context, slug pgtype.Text) (Product, error)
+	GetRecommendedProducts(ctx context.Context, id int64) ([]Product, error)
+	ListCategories(ctx context.Context) ([]Category, error)
 	ListProducts(ctx context.Context) ([]Product, error)
+	ListProductsByCategory(ctx context.Context, slug string) ([]Product, error)
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
 }
 

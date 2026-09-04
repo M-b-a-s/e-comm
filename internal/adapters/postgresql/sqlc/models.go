@@ -8,10 +8,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Category struct {
+	ID        int64            `json:"id"`
+	Slug      string           `json:"slug"`
+	Name      string           `json:"name"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type Product struct {
-	ID           int64            `json:"id"`
-	Name         string           `json:"name"`
-	PriceInCents int32            `json:"price_in_cents"`
-	Quantity     int32            `json:"quantity"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	ID                    int64            `json:"id"`
+	Name                  string           `json:"name"`
+	PriceInCents          int32            `json:"price_in_cents"`
+	CreatedAt             pgtype.Timestamp `json:"created_at"`
+	Slug                  pgtype.Text      `json:"slug"`
+	ShortName             pgtype.Text      `json:"short_name"`
+	CategoryID            pgtype.Int8      `json:"category_id"`
+	IsNew                 bool             `json:"is_new"`
+	Description           pgtype.Text      `json:"description"`
+	Features              pgtype.Text      `json:"features"`
+	BoxIncludes           []byte           `json:"box_includes"`
+	Gallery               []byte           `json:"gallery"`
+	CategoryImage         pgtype.Text      `json:"category_image"`
+	RecommendedProductIds []int64          `json:"recommended_product_ids"`
 }

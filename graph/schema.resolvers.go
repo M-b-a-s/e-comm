@@ -8,18 +8,28 @@ package graph
 import (
 	"context"
 	"fmt"
-	"strconv"
-
 	"github/M-b-a-s/e-comm/graph/model"
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
+	"strconv"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // CreateProduct is the resolver for the createProduct field.
 func (r *mutationResolver) CreateProduct(ctx context.Context, input model.CreateProductInput) (*model.Product, error) {
 	product, err := r.Queries.CreateProduct(ctx, repo.CreateProductParams{
-		Name:         input.Name,
-		PriceInCents: input.PriceInCents,
-		Quantity:     input.Quantity,
+		Name:                  input.Name,
+		PriceInCents:          input.PriceInCents,
+		Slug:                  pgtype.Text{String: input.Slug, Valid: true},
+		ShortName:             pgtype.Text{String: input.ShortName, Valid: true},
+		CategoryID:            pgtype.Int8{Int64: int64(input.CategoryID), Valid: true},
+		IsNew:                 input.IsNew,
+		Description:           pgtype.Text{String: input.Description, Valid: true},
+		Features:              pgtype.Text{String: input.Features, Valid: true},
+		BoxIncludes:           []byte(input.BoxIncludes),
+		Gallery:               []byte(input.Gallery),
+		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
+		RecommendedProductIds: int32sToInt64s(input.RecommendedProductIds),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create product: %w", err)
@@ -40,10 +50,19 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 
 	// Call the UpdateProduct method from the Queries interface with the parsed ID and input parameters
 	product, err := r.Queries.UpdateProduct(ctx, repo.UpdateProductParams{
-		ID:           productID,
-		Name:         input.Name,
-		PriceInCents: input.PriceInCents,
-		Quantity:     input.Quantity,
+		ID:                    productID,
+		Name:                  input.Name,
+		PriceInCents:          input.PriceInCents,
+		Slug:                  pgtype.Text{String: input.Slug, Valid: true},
+		ShortName:             pgtype.Text{String: input.ShortName, Valid: true},
+		CategoryID:            pgtype.Int8{Int64: int64(input.CategoryID), Valid: true},
+		IsNew:                 input.IsNew,
+		Description:           pgtype.Text{String: input.Description, Valid: true},
+		Features:              pgtype.Text{String: input.Features, Valid: true},
+		BoxIncludes:           []byte(input.BoxIncludes),
+		Gallery:               []byte(input.Gallery),
+		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
+		RecommendedProductIds: int32sToInt64s(input.RecommendedProductIds),
 	})
 
 	// Handle the error if the update operation fails
@@ -113,10 +132,35 @@ type (
 
 func productToModel(product repo.Product) *model.Product {
 	return &model.Product{
-		ID:           strconv.FormatInt(product.ID, 10),
-		Name:         product.Name,
-		PriceInCents: product.PriceInCents,
-		Quantity:     product.Quantity,
-		CreatedAt:    product.CreatedAt.Time,
+		ID:                    strconv.FormatInt(product.ID, 10),
+		Name:                  product.Name,
+		PriceInCents:          product.PriceInCents,
+		CreatedAt:             product.CreatedAt.Time,
+		Slug:                  product.Slug.String,
+		ShortName:             product.ShortName.String,
+		CategoryID:            int32(product.CategoryID.Int64),
+		IsNew:                 product.IsNew,
+		Description:           product.Description.String,
+		Features:              product.Features.String,
+		BoxIncludes:           string(product.BoxIncludes),
+		Gallery:               string(product.Gallery),
+		CategoryImage:         product.CategoryImage.String,
+		RecommendedProductIds: int64sToInt32s(product.RecommendedProductIds),
 	}
+}
+
+func int32sToInt64s(values []int32) []int64 {
+	result := make([]int64, len(values))
+	for i, value := range values {
+		result[i] = int64(value)
+	}
+	return result
+}
+
+func int64sToInt32s(values []int64) []int32 {
+	result := make([]int32, len(values))
+	for i, value := range values {
+		result[i] = int32(value)
+	}
+	return result
 }

@@ -4,20 +4,47 @@ type Product {
   id: ID!
   name: String!
   priceInCents: Int!
-  quantity: Int!
+  slug: String!
+  shortName: String!
+  categoryId: Int!
+  isNew: Boolean!
+  description: String!
+  features: String!
+  boxIncludes: String!
+  gallery: String!
+  categoryImage: String!
+  recommendedProductIds: [Int!]!
   createdAt: Time!
 }
 
 input CreateProductInput {
   name: String!
   priceInCents: Int!
-  quantity: Int!
+  slug: String!
+  shortName: String!
+  categoryId: Int!
+  isNew: Boolean!
+  description: String!
+  features: String!
+  boxIncludes: String!
+  gallery: String!
+  categoryImage: String!
+  recommendedProductIds: [Int!]!
 }
 
 input UpdateProductInput {
   name: String!
   priceInCents: Int!
-  quantity: Int!
+  slug: String!
+  shortName: String!
+  categoryId: Int!
+  isNew: Boolean!
+  description: String!
+  features: String!
+  boxIncludes: String!
+  gallery: String!
+  categoryImage: String!
+  recommendedProductIds: [Int!]!
 }
 
 type Query {
