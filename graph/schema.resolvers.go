@@ -7,6 +7,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github/M-b-a-s/e-comm/graph/model"
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
@@ -17,6 +18,16 @@ import (
 
 // CreateProduct is the resolver for the createProduct field.
 func (r *mutationResolver) CreateProduct(ctx context.Context, input model.CreateProductInput) (*model.Product, error) {
+	boxIncludes, err := json.Marshal(input.BoxIncludes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal box includes: %w", err)
+	}
+
+	gallery, err := json.Marshal(input.Gallery)
+	if err != nil {
+		return nil, fmt.Errorf("marshal gallery: %w", err)
+	}
+
 	product, err := r.Queries.CreateProduct(ctx, repo.CreateProductParams{
 		Name:                  input.Name,
 		PriceInCents:          input.PriceInCents,
@@ -26,8 +37,8 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 		IsNew:                 input.IsNew,
 		Description:           pgtype.Text{String: input.Description, Valid: true},
 		Features:              pgtype.Text{String: input.Features, Valid: true},
-		BoxIncludes:           []byte(input.BoxIncludes),
-		Gallery:               []byte(input.Gallery),
+		BoxIncludes:           boxIncludes,
+		Gallery:               gallery,
 		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
 		RecommendedProductIds: int32sToInt64s(input.RecommendedProductIds),
 	})
@@ -148,7 +159,6 @@ func productToModel(product repo.Product) *model.Product {
 		RecommendedProductIds: int64sToInt32s(product.RecommendedProductIds),
 	}
 }
-
 func int32sToInt64s(values []int32) []int64 {
 	result := make([]int64, len(values))
 	for i, value := range values {
@@ -156,7 +166,6 @@ func int32sToInt64s(values []int32) []int64 {
 	}
 	return result
 }
-
 func int64sToInt32s(values []int64) []int32 {
 	result := make([]int32, len(values))
 	for i, value := range values {

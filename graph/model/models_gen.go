@@ -6,19 +6,24 @@ import (
 	"time"
 )
 
+type BoxItemInput struct {
+	Quantity int32  `json:"quantity"`
+	Item     string `json:"item"`
+}
+
 type CreateProductInput struct {
-	Name                  string  `json:"name"`
-	PriceInCents          int32   `json:"priceInCents"`
-	Slug                  string  `json:"slug"`
-	ShortName             string  `json:"shortName"`
-	CategoryID            int32   `json:"categoryId"`
-	IsNew                 bool    `json:"isNew"`
-	Description           string  `json:"description"`
-	Features              string  `json:"features"`
-	BoxIncludes           string  `json:"boxIncludes"`
-	Gallery               string  `json:"gallery"`
-	CategoryImage         string  `json:"categoryImage"`
-	RecommendedProductIds []int32 `json:"recommendedProductIds"`
+	Name                  string          `json:"name"`
+	PriceInCents          int32           `json:"priceInCents"`
+	Slug                  string          `json:"slug"`
+	ShortName             string          `json:"shortName"`
+	CategoryID            int32           `json:"categoryId"`
+	IsNew                 bool            `json:"isNew"`
+	Description           string          `json:"description"`
+	Features              string          `json:"features"`
+	BoxIncludes           []*BoxItemInput `json:"boxIncludes"`
+	Gallery               []string        `json:"gallery"`
+	CategoryImage         string          `json:"categoryImage"`
+	RecommendedProductIds []int32         `json:"recommendedProductIds"`
 }
 
 type Mutation struct {

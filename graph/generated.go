@@ -244,6 +244,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputBoxItemInput,
 		ec.unmarshalInputCreateProductInput,
 		ec.unmarshalInputUpdateProductInput,
 	)
@@ -2293,6 +2294,43 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputBoxItemInput(ctx context.Context, obj any) (model.BoxItemInput, error) {
+	var it model.BoxItemInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"quantity", "item"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "quantity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantity"))
+			data, err := ec.unmarshalNInt2int32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Quantity = data
+		case "item":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("item"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Item = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context, obj any) (model.CreateProductInput, error) {
 	var it model.CreateProductInput
 	if obj == nil {
@@ -2369,14 +2407,14 @@ func (ec *executionContext) unmarshalInputCreateProductInput(ctx context.Context
 			it.Features = data
 		case "boxIncludes":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("boxIncludes"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNBoxItemInput2ᚕᚖgithubᚋMᚑbᚑaᚑsᚋeᚑcommᚋgraphᚋmodelᚐBoxItemInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.BoxIncludes = data
 		case "gallery":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gallery"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3187,6 +3225,25 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNBoxItemInput2ᚕᚖgithubᚋMᚑbᚑaᚑsᚋeᚑcommᚋgraphᚋmodelᚐBoxItemInputᚄ(ctx context.Context, v any) ([]*model.BoxItemInput, error) {
+	vSlice := graphql.CoerceList(v)
+	var err error
+	res := make([]*model.BoxItemInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNBoxItemInput2ᚖgithubᚋMᚑbᚑaᚑsᚋeᚑcommᚋgraphᚋmodelᚐBoxItemInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNBoxItemInput2ᚖgithubᚋMᚑbᚑaᚑsᚋeᚑcommᚋgraphᚋmodelᚐBoxItemInput(ctx context.Context, v any) (*model.BoxItemInput, error) {
+	res, err := ec.unmarshalInputBoxItemInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateProductInput2githubᚋMᚑbᚑaᚑsᚋeᚑcommᚋgraphᚋmodelᚐCreateProductInput(ctx context.Context, v any) (model.CreateProductInput, error) {
 	res, err := ec.unmarshalInputCreateProductInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3293,6 +3350,35 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	vSlice := graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
