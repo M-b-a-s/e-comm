@@ -16,17 +16,58 @@ import (
 
 // CreateProduct is the resolver for the createProduct field.
 func (r *mutationResolver) CreateProduct(ctx context.Context, input model.CreateProductInput) (*model.Product, error) {
-	panic(fmt.Errorf("not implemented: CreateProduct - createProduct"))
+	product, err := r.Queries.CreateProduct(ctx, repo.CreateProductParams{
+		Name:         input.Name,
+		PriceInCents: input.PriceInCents,
+		Quantity:     input.Quantity,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create product: %w", err)
+	}
+
+	return productToModel(product), nil
 }
 
 // UpdateProduct is the resolver for the updateProduct field.
 func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input model.UpdateProductInput) (*model.Product, error) {
-	panic(fmt.Errorf("not implemented: UpdateProduct - updateProduct"))
+	// Parse the product ID from string to int64
+	productID, err := strconv.ParseInt(id, 10, 64)
+
+	// Handle the error if the ID is not a valid integer
+	if err != nil {
+		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
+	}
+
+	// Call the UpdateProduct method from the Queries interface with the parsed ID and input parameters
+	product, err := r.Queries.UpdateProduct(ctx, repo.UpdateProductParams{
+		ID:           productID,
+		Name:         input.Name,
+		PriceInCents: input.PriceInCents,
+		Quantity:     input.Quantity,
+	})
+
+	// Handle the error if the update operation fails
+	if err != nil {
+		return nil, fmt.Errorf("update product %d: %w", productID, err)
+	}
+
+	// Return the updated product converted to the GraphQL model format
+	return productToModel(product), nil
 }
 
 // DeleteProduct is the resolver for the deleteProduct field.
 func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (*model.Product, error) {
-	panic(fmt.Errorf("not implemented: DeleteProduct - deleteProduct"))
+	productID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
+	}
+
+	product, err := r.Queries.DeleteProduct(ctx, productID)
+	if err != nil {
+		return nil, fmt.Errorf("delete product %d: %w", productID, err)
+	}
+
+	return productToModel(product), nil
 }
 
 // Products is the resolver for the products field.
