@@ -21,7 +21,7 @@ type CreateProductInput struct {
 	Description           string          `json:"description"`
 	Features              string          `json:"features"`
 	BoxIncludes           []*BoxItemInput `json:"boxIncludes"`
-	Gallery               []string        `json:"gallery"`
+	Gallery               string          `json:"gallery"`
 	CategoryImage         string          `json:"categoryImage"`
 	RecommendedProductIds []int32         `json:"recommendedProductIds"`
 }

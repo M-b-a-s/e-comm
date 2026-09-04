@@ -23,11 +23,6 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 		return nil, fmt.Errorf("marshal box includes: %w", err)
 	}
 
-	gallery, err := json.Marshal(input.Gallery)
-	if err != nil {
-		return nil, fmt.Errorf("marshal gallery: %w", err)
-	}
-
 	product, err := r.Queries.CreateProduct(ctx, repo.CreateProductParams{
 		Name:                  input.Name,
 		PriceInCents:          input.PriceInCents,
@@ -38,7 +33,7 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 		Description:           pgtype.Text{String: input.Description, Valid: true},
 		Features:              pgtype.Text{String: input.Features, Valid: true},
 		BoxIncludes:           boxIncludes,
-		Gallery:               gallery,
+		Gallery:               []byte(input.Gallery),
 		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
 		RecommendedProductIds: int32sToInt64s(input.RecommendedProductIds),
 	})

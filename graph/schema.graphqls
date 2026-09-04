@@ -32,7 +32,7 @@ input CreateProductInput {
   description: String!
   features: String!
   boxIncludes: [BoxItemInput!]!
-  gallery: [String!]!
+  gallery: String!
   categoryImage: String!
   recommendedProductIds: [Int!]!
 }
