@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -20,6 +22,11 @@ import (
 )
 
 const defaultPort = "4000"
+
+var defaultAllowedOrigins = []string{
+	"http://localhost:3000",
+	"http://localhost:5173",
+}
 
 func main() {
 	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -58,9 +65,51 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	mux := http.NewServeMux()
+	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	mux.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, corsMiddleware(mux)))
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	allowedOrigins := configuredOrigins()
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if slices.Contains(allowedOrigins, origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Add("Vary", "Origin")
+		}
+
+		if r.Method == http.MethodOptions {
+			if !slices.Contains(allowedOrigins, origin) {
+				http.Error(w, "origin is not allowed", http.StatusForbidden)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func configuredOrigins() []string {
+	value := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if value == "" {
+		return defaultAllowedOrigins
+	}
+
+	origins := make([]string, 0)
+	for origin := range strings.SplitSeq(value, ",") {
+		origin = strings.TrimSpace(origin)
+		if origin != "" && !slices.Contains(origins, origin) {
+			origins = append(origins, origin)
+		}
+	}
+	return origins
 }
