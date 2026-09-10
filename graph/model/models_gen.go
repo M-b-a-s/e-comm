@@ -32,13 +32,12 @@ type CreateProductInput struct {
 }
 
 type CreateUserInput struct {
-	Name        string   `json:"name"`
-	Email       string   `json:"email"`
-	PhoneNumber *string  `json:"phoneNumber,omitempty"`
-	Country     string   `json:"country"`
-	Username    string   `json:"username"`
-	Role        UserRole `json:"role"`
-	Password    string   `json:"password"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phoneNumber"`
+	Country     string `json:"country"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
 }
 
 type Mutation struct {
@@ -83,7 +82,7 @@ type User struct {
 	ID            string     `json:"id"`
 	Name          string     `json:"name"`
 	Email         string     `json:"email"`
-	PhoneNumber   *string    `json:"phoneNumber,omitempty"`
+	PhoneNumber   string     `json:"phoneNumber"`
 	Country       string     `json:"country"`
 	Username      string     `json:"username"`
 	Role          UserRole   `json:"role"`

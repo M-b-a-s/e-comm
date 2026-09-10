@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github/M-b-a-s/e-comm/graph"
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
+	"github/M-b-a-s/e-comm/internal/auth"
 	"log"
 	"net/http"
 	"os"
@@ -50,8 +51,12 @@ func main() {
 		port = defaultPort
 	}
 
+	queries := repo.New(conn)
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{
-		Resolvers: &graph.Resolver{Queries: repo.New(conn)},
+		Resolvers: &graph.Resolver{
+			Queries:  queries,
+			Accounts: auth.NewAccountService(queries),
+		},
 	}))
 
 	srv.AddTransport(transport.Options{})

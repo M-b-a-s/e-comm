@@ -2,6 +2,7 @@ package graph
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github/M-b-a-s/e-comm/graph/model"
@@ -27,6 +28,21 @@ func productToModel(product repo.Product) *model.Product {
 		Gallery:               scalar.JSON(product.Gallery),
 		CategoryImage:         nullableString(product.CategoryImage),
 		RecommendedProductIds: idsToStrings(product.RecommendedProductIds),
+	}
+}
+
+func userToModel(user repo.User) *model.User {
+	return &model.User{
+		ID:            strconv.FormatInt(user.ID, 10),
+		Name:          user.Name,
+		Email:         user.Email,
+		PhoneNumber:   user.PhoneNumber.String,
+		Country:       user.Country,
+		Username:      user.Username,
+		Role:          model.UserRole(strings.ToUpper(string(user.Role))),
+		EmailVerified: user.EmailVerified,
+		CreatedAt:     user.CreatedAt.Time,
+		UpdatedAt:     user.UpdatedAt.Time,
 	}
 }
 

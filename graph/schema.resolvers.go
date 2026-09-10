@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github/M-b-a-s/e-comm/graph/model"
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
+	"github/M-b-a-s/e-comm/internal/auth"
 	"strconv"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -91,7 +92,19 @@ func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (*model
 
 // CreateAccount is the resolver for the createAccount field.
 func (r *mutationResolver) CreateAccount(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: CreateAccount - createAccount"))
+	user, err := r.Accounts.CreateAccount(ctx, auth.AccountInput{
+		Name:        input.Name,
+		Email:       input.Email,
+		Password:    input.Password,
+		PhoneNumber: input.PhoneNumber,
+		Country:     input.Country,
+		Username:    input.Username,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return userToModel(user), nil
 }
 
 // Products is the resolver for the products field.
