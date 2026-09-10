@@ -1,20 +1,27 @@
 scalar Time
+scalar DateTime
+scalar JSON
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
 
 type Product {
   id: ID!
   name: String!
   priceInCents: Int!
-  slug: String!
-  shortName: String!
-  categoryId: Int!
+  createdAt: DateTime          # nullable in DB (pgtype.Timestamp)
+  slug: String
+  shortName: String
+  categoryId: ID
   isNew: Boolean!
-  description: String!
-  features: String!
-  boxIncludes: String!
-  gallery: String!
-  categoryImage: String!
-  recommendedProductIds: [Int!]!
-  createdAt: Time!
+  description: String
+  features: String
+  boxIncludes: JSON!
+  gallery: JSON!
+  categoryImage: String
+  recommendedProductIds: [ID!]!
 }
 
 input BoxItemInput {
@@ -32,7 +39,7 @@ input CreateProductInput {
   description: String!
   features: String!
   boxIncludes: [BoxItemInput!]!
-  gallery: String!
+  gallery: JSON!
   categoryImage: String!
   recommendedProductIds: [Int!]!
 }
@@ -46,10 +53,35 @@ input UpdateProductInput {
   isNew: Boolean!
   description: String!
   features: String!
-  boxIncludes: String!
-  gallery: String!
+  boxIncludes: JSON!
+  gallery: JSON!
   categoryImage: String!
   recommendedProductIds: [Int!]!
+}
+
+# users schema
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  phoneNumber: String
+  country: String!
+  username: String!
+  role: UserRole!
+  emailVerified: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  phoneNumber: String
+  country: String!
+  username: String!
+  role: UserRole!
+  password: String!
 }
 
 type Query {
@@ -61,4 +93,6 @@ type Mutation {
   createProduct(input: CreateProductInput!): Product!
   updateProduct(id: ID!, input: UpdateProductInput!): Product!
   deleteProduct(id: ID!): Product!
+
+  createAccount(input: CreateUserInput!): User!
 }

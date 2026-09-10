@@ -35,7 +35,7 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 		BoxIncludes:           boxIncludes,
 		Gallery:               []byte(input.Gallery),
 		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
-		RecommendedProductIds: int32sToInt64s(input.RecommendedProductIds),
+		RecommendedProductIds: idsToInt64s(input.RecommendedProductIds),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create product: %w", err)
@@ -46,15 +46,11 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 
 // UpdateProduct is the resolver for the updateProduct field.
 func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input model.UpdateProductInput) (*model.Product, error) {
-	// Parse the product ID from string to int64
 	productID, err := strconv.ParseInt(id, 10, 64)
-
-	// Handle the error if the ID is not a valid integer
 	if err != nil {
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
 	}
 
-	// Call the UpdateProduct method from the Queries interface with the parsed ID and input parameters
 	product, err := r.Queries.UpdateProduct(ctx, repo.UpdateProductParams{
 		ID:                    productID,
 		Name:                  input.Name,
@@ -68,15 +64,13 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 		BoxIncludes:           []byte(input.BoxIncludes),
 		Gallery:               []byte(input.Gallery),
 		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
-		RecommendedProductIds: int32sToInt64s(input.RecommendedProductIds),
+		RecommendedProductIds: idsToInt64s(input.RecommendedProductIds),
 	})
 
-	// Handle the error if the update operation fails
 	if err != nil {
 		return nil, fmt.Errorf("update product %d: %w", productID, err)
 	}
 
-	// Return the updated product converted to the GraphQL model format
 	return productToModel(product), nil
 }
 
@@ -93,6 +87,11 @@ func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (*model
 	}
 
 	return productToModel(product), nil
+}
+
+// CreateAccount is the resolver for the createAccount field.
+func (r *mutationResolver) CreateAccount(ctx context.Context, input model.CreateUserInput) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: CreateAccount - createAccount"))
 }
 
 // Products is the resolver for the products field.
@@ -135,36 +134,3 @@ type (
 	mutationResolver struct{ *Resolver }
 	queryResolver    struct{ *Resolver }
 )
-
-func productToModel(product repo.Product) *model.Product {
-	return &model.Product{
-		ID:                    strconv.FormatInt(product.ID, 10),
-		Name:                  product.Name,
-		PriceInCents:          product.PriceInCents,
-		CreatedAt:             product.CreatedAt.Time,
-		Slug:                  product.Slug.String,
-		ShortName:             product.ShortName.String,
-		CategoryID:            int32(product.CategoryID.Int64),
-		IsNew:                 product.IsNew,
-		Description:           product.Description.String,
-		Features:              product.Features.String,
-		BoxIncludes:           string(product.BoxIncludes),
-		Gallery:               string(product.Gallery),
-		CategoryImage:         product.CategoryImage.String,
-		RecommendedProductIds: int64sToInt32s(product.RecommendedProductIds),
-	}
-}
-func int32sToInt64s(values []int32) []int64 {
-	result := make([]int64, len(values))
-	for i, value := range values {
-		result[i] = int64(value)
-	}
-	return result
-}
-func int64sToInt32s(values []int64) []int32 {
-	result := make([]int32, len(values))
-	for i, value := range values {
-		result[i] = int32(value)
-	}
-	return result
-}

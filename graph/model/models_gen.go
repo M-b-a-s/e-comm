@@ -3,6 +3,11 @@
 package model
 
 import (
+	"bytes"
+	"fmt"
+	"github/M-b-a-s/e-comm/internal/scalar"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -21,45 +26,124 @@ type CreateProductInput struct {
 	Description           string          `json:"description"`
 	Features              string          `json:"features"`
 	BoxIncludes           []*BoxItemInput `json:"boxIncludes"`
-	Gallery               string          `json:"gallery"`
+	Gallery               scalar.JSON     `json:"gallery"`
 	CategoryImage         string          `json:"categoryImage"`
 	RecommendedProductIds []int32         `json:"recommendedProductIds"`
+}
+
+type CreateUserInput struct {
+	Name        string   `json:"name"`
+	Email       string   `json:"email"`
+	PhoneNumber *string  `json:"phoneNumber,omitempty"`
+	Country     string   `json:"country"`
+	Username    string   `json:"username"`
+	Role        UserRole `json:"role"`
+	Password    string   `json:"password"`
 }
 
 type Mutation struct {
 }
 
 type Product struct {
-	ID                    string    `json:"id"`
-	Name                  string    `json:"name"`
-	PriceInCents          int32     `json:"priceInCents"`
-	Slug                  string    `json:"slug"`
-	ShortName             string    `json:"shortName"`
-	CategoryID            int32     `json:"categoryId"`
-	IsNew                 bool      `json:"isNew"`
-	Description           string    `json:"description"`
-	Features              string    `json:"features"`
-	BoxIncludes           string    `json:"boxIncludes"`
-	Gallery               string    `json:"gallery"`
-	CategoryImage         string    `json:"categoryImage"`
-	RecommendedProductIds []int32   `json:"recommendedProductIds"`
-	CreatedAt             time.Time `json:"createdAt"`
+	ID                    string      `json:"id"`
+	Name                  string      `json:"name"`
+	PriceInCents          int32       `json:"priceInCents"`
+	CreatedAt             *time.Time  `json:"createdAt,omitempty"`
+	Slug                  *string     `json:"slug,omitempty"`
+	ShortName             *string     `json:"shortName,omitempty"`
+	CategoryID            *string     `json:"categoryId,omitempty"`
+	IsNew                 bool        `json:"isNew"`
+	Description           *string     `json:"description,omitempty"`
+	Features              *string     `json:"features,omitempty"`
+	BoxIncludes           scalar.JSON `json:"boxIncludes"`
+	Gallery               scalar.JSON `json:"gallery"`
+	CategoryImage         *string     `json:"categoryImage,omitempty"`
+	RecommendedProductIds []string    `json:"recommendedProductIds"`
 }
 
 type Query struct {
 }
 
 type UpdateProductInput struct {
-	Name                  string  `json:"name"`
-	PriceInCents          int32   `json:"priceInCents"`
-	Slug                  string  `json:"slug"`
-	ShortName             string  `json:"shortName"`
-	CategoryID            int32   `json:"categoryId"`
-	IsNew                 bool    `json:"isNew"`
-	Description           string  `json:"description"`
-	Features              string  `json:"features"`
-	BoxIncludes           string  `json:"boxIncludes"`
-	Gallery               string  `json:"gallery"`
-	CategoryImage         string  `json:"categoryImage"`
-	RecommendedProductIds []int32 `json:"recommendedProductIds"`
+	Name                  string      `json:"name"`
+	PriceInCents          int32       `json:"priceInCents"`
+	Slug                  string      `json:"slug"`
+	ShortName             string      `json:"shortName"`
+	CategoryID            int32       `json:"categoryId"`
+	IsNew                 bool        `json:"isNew"`
+	Description           string      `json:"description"`
+	Features              string      `json:"features"`
+	BoxIncludes           scalar.JSON `json:"boxIncludes"`
+	Gallery               scalar.JSON `json:"gallery"`
+	CategoryImage         string      `json:"categoryImage"`
+	RecommendedProductIds []int32     `json:"recommendedProductIds"`
+}
+
+type User struct {
+	ID            string     `json:"id"`
+	Name          string     `json:"name"`
+	Email         string     `json:"email"`
+	PhoneNumber   *string    `json:"phoneNumber,omitempty"`
+	Country       string     `json:"country"`
+	Username      string     `json:"username"`
+	Role          UserRole   `json:"role"`
+	EmailVerified bool       `json:"emailVerified"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
+	DeletedAt     *time.Time `json:"deletedAt,omitempty"`
+}
+
+type UserRole string
+
+const (
+	UserRoleAdmin    UserRole = "ADMIN"
+	UserRoleCustomer UserRole = "CUSTOMER"
+)
+
+var AllUserRole = []UserRole{
+	UserRoleAdmin,
+	UserRoleCustomer,
+}
+
+func (e UserRole) IsValid() bool {
+	switch e {
+	case UserRoleAdmin, UserRoleCustomer:
+		return true
+	}
+	return false
+}
+
+func (e UserRole) String() string {
+	return string(e)
+}
+
+func (e *UserRole) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UserRole(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UserRole", str)
+	}
+	return nil
+}
+
+func (e UserRole) MarshalGQL(w io.Writer) {
+	_, _ = fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *UserRole) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e UserRole) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
