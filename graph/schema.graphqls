@@ -64,7 +64,7 @@ type User {
   id: ID!
   name: String!
   email: String!
-  phoneNumber: String
+  phoneNumber: String!
   country: String!
   username: String!
   role: UserRole!
@@ -77,10 +77,9 @@ type User {
 input CreateUserInput {
   name: String!
   email: String!
-  phoneNumber: String
+  phoneNumber: String!
   country: String!
   username: String!
-  role: UserRole!
   password: String!
 }
 
