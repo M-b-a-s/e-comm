@@ -23,11 +23,14 @@ const (
 var ErrInvalidPasswordHash = errors.New("invalid password hash")
 
 func HashPassword(password string) (string, error) {
+	// create the salt
 	salt := make([]byte, argon2SaltLength)
+	// fill it with secure random bytes
 	if _, err := rand.Read(salt); err != nil {
 		return "", fmt.Errorf("generate password salt: %w", err)
 	}
 
+	// generate the argon key
 	key := argon2.IDKey([]byte(password), salt, argon2Iterations, argon2Memory, argon2Parallelism, argon2KeyLength)
 	return fmt.Sprintf(
 		"$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s",

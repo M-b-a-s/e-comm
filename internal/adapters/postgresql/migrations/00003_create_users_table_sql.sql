@@ -1,4 +1,5 @@
 -- +goose Up
+
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TYPE user_role AS ENUM ('customer', 'admin');
@@ -21,10 +22,20 @@ CREATE TABLE users (
         CHECK (LENGTH(username) BETWEEN 3 AND 30)
 );
 
-CREATE UNIQUE INDEX users_email_unique_idx ON users (email) WHERE deleted_at IS NULL;
-CREATE UNIQUE INDEX users_username_unique_idx ON users (username) WHERE deleted_at IS NULL;
-CREATE UNIQUE INDEX users_phone_unique_idx ON users (phone_number) WHERE deleted_at IS NULL AND phone_number IS NOT NULL;
+CREATE UNIQUE INDEX users_email_unique_idx
+    ON users (email)
+    WHERE deleted_at IS NULL;
 
+CREATE UNIQUE INDEX users_username_unique_idx
+    ON users (username)
+    WHERE deleted_at IS NULL;
+
+CREATE UNIQUE INDEX users_phone_unique_idx
+    ON users (phone_number)
+    WHERE deleted_at IS NULL
+    AND phone_number IS NOT NULL;
+
+-- +goose StatementBegin
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -32,6 +43,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+-- +goose StatementEnd
 
 CREATE TRIGGER users_set_updated_at
     BEFORE UPDATE ON users
@@ -39,6 +51,7 @@ CREATE TRIGGER users_set_updated_at
     EXECUTE FUNCTION set_updated_at();
 
 -- +goose Down
+
 DROP TRIGGER IF EXISTS users_set_updated_at ON users;
 DROP FUNCTION IF EXISTS set_updated_at();
 DROP TABLE IF EXISTS users;

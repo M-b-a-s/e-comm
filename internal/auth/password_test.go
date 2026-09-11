@@ -6,12 +6,15 @@ import (
 )
 
 func TestHashPassword(t *testing.T) {
-	password := "correct horse battery staple"
+	password := "Test@1234"
 
 	firstHash, err := HashPassword(password)
 	if err != nil {
 		t.Fatalf("hash password: %v", err)
 	}
+
+	t.Logf("hashed password: %s", firstHash)
+
 	secondHash, err := HashPassword(password)
 	if err != nil {
 		t.Fatalf("hash password a second time: %v", err)
