@@ -10,11 +10,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github/M-b-a-s/e-comm/graph/model"
-	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
 	"github/M-b-a-s/e-comm/internal/auth"
+	productsvc "github/M-b-a-s/e-comm/internal/products"
 	"strconv"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // CreateProduct is the resolver for the createProduct field.
@@ -24,19 +22,19 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 		return nil, fmt.Errorf("marshal box includes: %w", err)
 	}
 
-	product, err := r.Queries.CreateProduct(ctx, repo.CreateProductParams{
+	product, err := r.ProductService.Create(ctx, productsvc.Input{
 		Name:                  input.Name,
 		PriceInCents:          input.PriceInCents,
-		Slug:                  pgtype.Text{String: input.Slug, Valid: true},
-		ShortName:             pgtype.Text{String: input.ShortName, Valid: true},
-		CategoryID:            pgtype.Int8{Int64: int64(input.CategoryID), Valid: true},
+		Slug:                  input.Slug,
+		ShortName:             input.ShortName,
+		CategoryID:            input.CategoryID,
 		IsNew:                 input.IsNew,
-		Description:           pgtype.Text{String: input.Description, Valid: true},
-		Features:              pgtype.Text{String: input.Features, Valid: true},
+		Description:           input.Description,
+		Features:              input.Features,
 		BoxIncludes:           boxIncludes,
 		Gallery:               []byte(input.Gallery),
-		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
-		RecommendedProductIds: idsToInt64s(input.RecommendedProductIds),
+		CategoryImage:         input.CategoryImage,
+		RecommendedProductIDs: idsToInt64s(input.RecommendedProductIds),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create product: %w", err)
@@ -52,20 +50,19 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
 	}
 
-	product, err := r.Queries.UpdateProduct(ctx, repo.UpdateProductParams{
-		ID:                    productID,
+	product, err := r.ProductService.Update(ctx, productID, productsvc.Input{
 		Name:                  input.Name,
 		PriceInCents:          input.PriceInCents,
-		Slug:                  pgtype.Text{String: input.Slug, Valid: true},
-		ShortName:             pgtype.Text{String: input.ShortName, Valid: true},
-		CategoryID:            pgtype.Int8{Int64: int64(input.CategoryID), Valid: true},
+		Slug:                  input.Slug,
+		ShortName:             input.ShortName,
+		CategoryID:            input.CategoryID,
 		IsNew:                 input.IsNew,
-		Description:           pgtype.Text{String: input.Description, Valid: true},
-		Features:              pgtype.Text{String: input.Features, Valid: true},
+		Description:           input.Description,
+		Features:              input.Features,
 		BoxIncludes:           []byte(input.BoxIncludes),
 		Gallery:               []byte(input.Gallery),
-		CategoryImage:         pgtype.Text{String: input.CategoryImage, Valid: true},
-		RecommendedProductIds: idsToInt64s(input.RecommendedProductIds),
+		CategoryImage:         input.CategoryImage,
+		RecommendedProductIDs: idsToInt64s(input.RecommendedProductIds),
 	})
 
 	if err != nil {
@@ -82,7 +79,7 @@ func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (*model
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
 	}
 
-	product, err := r.Queries.DeleteProduct(ctx, productID)
+	product, err := r.ProductService.Delete(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("delete product %d: %w", productID, err)
 	}
@@ -109,7 +106,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input model.Create
 
 // Products is the resolver for the products field.
 func (r *queryResolver) Products(ctx context.Context) ([]*model.Product, error) {
-	products, err := r.Queries.ListProducts(ctx)
+	products, err := r.ProductService.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("list products: %w", err)
 	}
@@ -129,7 +126,7 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
 	}
 
-	product, err := r.Queries.GetProductByID(ctx, productID)
+	product, err := r.ProductService.GetByID(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("get product %d: %w", productID, err)
 	}
@@ -149,10 +146,7 @@ func (r *queryResolver) Users(ctx context.Context, limit *int32, offset *int32) 
 		userOffset = *offset
 	}
 
-	users, err := r.Queries.ListUsers(ctx, repo.ListUsersParams{
-		Limit:  userLimit,
-		Offset: userOffset,
-	})
+	users, err := r.UserService.List(ctx, userLimit, userOffset)
 	if err != nil {
 		return nil, fmt.Errorf("list users: %w", err)
 	}

@@ -6,6 +6,8 @@ import (
 	"github/M-b-a-s/e-comm/graph"
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
 	"github/M-b-a-s/e-comm/internal/auth"
+	"github/M-b-a-s/e-comm/internal/products"
+	"github/M-b-a-s/e-comm/internal/users"
 	"log"
 	"net/http"
 	"os"
@@ -54,8 +56,9 @@ func main() {
 	queries := repo.New(conn)
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
-			Queries:  queries,
-			Accounts: auth.NewAccountService(queries),
+			Accounts:       auth.NewAccountService(queries),
+			ProductService: products.NewService(queries),
+			UserService:    users.NewService(queries),
 		},
 	}))
 
