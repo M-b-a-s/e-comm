@@ -86,6 +86,7 @@ input CreateUserInput {
 type Query {
   products: [Product!]!
   product(id: ID!): Product
+  users(limit: Int = 20, offset: Int = 0): [User!]!
 }
 
 type Mutation {

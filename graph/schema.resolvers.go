@@ -137,6 +137,34 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 	return productToModel(product), nil
 }
 
+// Users is the resolver for the users field.
+func (r *queryResolver) Users(ctx context.Context, limit *int32, offset *int32) ([]*model.User, error) {
+	userLimit := int32(20)
+	if limit != nil {
+		userLimit = *limit
+	}
+
+	userOffset := int32(0)
+	if offset != nil {
+		userOffset = *offset
+	}
+
+	users, err := r.Queries.ListUsers(ctx, repo.ListUsersParams{
+		Limit:  userLimit,
+		Offset: userOffset,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list users: %w", err)
+	}
+
+	result := make([]*model.User, len(users))
+	for i, user := range users {
+		result[i] = userToModel(user)
+	}
+
+	return result, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
