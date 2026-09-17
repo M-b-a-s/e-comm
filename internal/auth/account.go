@@ -45,8 +45,23 @@ type LoginResult struct {
 	Token string
 }
 
+type AdminInput struct {
+	Name        string
+	Email       string
+	Password    string
+	PhoneNumber string
+	Country     string
+	Username    string
+}
+
+type Claims struct {
+	jwt.RegisteredClaims
+	Role string `json:"role"`
+}
+
 type userCreator interface {
 	CreateUser(context.Context, repo.CreateUserParams) (repo.User, error)
+	CreateAdminUser(context.Context, repo.CreateAdminUserParams) (repo.User, error)
 	GetUserByEmail(context.Context, string) (repo.User, error)
 }
 
@@ -84,6 +99,38 @@ func (s *AccountService) CreateAccount(ctx context.Context, input AccountInput) 
 	return user, nil
 }
 
+func (s *AccountService) BootstrapAdmin(ctx context.Context, input AdminInput) (repo.User, error) {
+	accountInput, err := normalizeAccountInput(AccountInput{
+		Name:        input.Name,
+		Email:       input.Email,
+		Password:    input.Password,
+		PhoneNumber: input.PhoneNumber,
+		Country:     input.Country,
+		Username:    input.Username,
+	})
+	if err != nil {
+		return repo.User{}, err
+	}
+
+	passwordHash, err := HashPassword(accountInput.Password)
+	if err != nil {
+		return repo.User{}, fmt.Errorf("hash admin password: %w", err)
+	}
+
+	user, err := s.users.CreateAdminUser(ctx, repo.CreateAdminUserParams{
+		Name:         accountInput.Name,
+		Email:        accountInput.Email,
+		PasswordHash: passwordHash,
+		PhoneNumber:  pgtype.Text{String: accountInput.PhoneNumber, Valid: true},
+		Country:      accountInput.Country,
+		Username:     accountInput.Username,
+	})
+	if err != nil {
+		return repo.User{}, fmt.Errorf("bootstrap admin: %w", err)
+	}
+	return user, nil
+}
+
 func (s *AccountService) Login(ctx context.Context, input LoginInput) (LoginResult, error) {
 	email := strings.ToLower(strings.TrimSpace(input.Email))
 	user, err := s.users.GetUserByEmail(ctx, email)
@@ -105,7 +152,8 @@ func (s *AccountService) Login(ctx context.Context, input LoginInput) (LoginResu
 	}
 
 	now := time.Now()
-	claims := jwt.RegisteredClaims{
+	claims := Claims{
+		Role:      string(user.Role),
 		Subject:   fmt.Sprintf("%d", user.ID),
 		IssuedAt:  jwt.NewNumericDate(now),
 		ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)),

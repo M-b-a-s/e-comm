@@ -56,6 +56,9 @@ func main() {
 	}
 
 	queries := repo.New(conn)
+	if err := bootstrapAdmin(ctx, auth.NewAccountService(queries)); err != nil {
+		log.Fatalf("bootstrap admin: %v", err)
+	}
 	otpStore := postgres.NewOTPStore(queries)
 	emailSender := email.NewSender()
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{
@@ -85,6 +88,32 @@ func main() {
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, corsMiddleware(auth.Middleware(mux))))
+}
+
+func bootstrapAdmin(ctx context.Context, accounts *auth.AccountService) error {
+	email := os.Getenv("ADMIN_EMAIL")
+	password := os.Getenv("ADMIN_PASSWORD")
+	if email == "" && password == "" {
+		return nil
+	}
+	if email == "" || password == "" {
+		return errors.New("ADMIN_EMAIL and ADMIN_PASSWORD must both be set")
+	}
+
+	input := auth.AdminInput{
+		Name:        os.Getenv("ADMIN_NAME"),
+		Email:       email,
+		Password:    password,
+		PhoneNumber: os.Getenv("ADMIN_PHONE_NUMBER"),
+		Country:     os.Getenv("ADMIN_COUNTRY"),
+		Username:    os.Getenv("ADMIN_USERNAME"),
+	}
+	if input.Name == "" || input.PhoneNumber == "" || input.Country == "" || input.Username == "" {
+		return errors.New("ADMIN_NAME, ADMIN_PHONE_NUMBER, ADMIN_COUNTRY, and ADMIN_USERNAME must be set")
+	}
+
+	_, err := accounts.BootstrapAdmin(ctx, input)
+	return err
 }
 
 func corsMiddleware(next http.Handler) http.Handler {

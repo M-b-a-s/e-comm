@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	CreateAdminUser(ctx context.Context, arg CreateAdminUserParams) (User, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteOTP(ctx context.Context, email string) error

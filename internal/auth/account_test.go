@@ -18,6 +18,10 @@ func (f *accountUserCreator) CreateUser(_ context.Context, params repo.CreateUse
 	return repo.User{ID: 1}, nil
 }
 
+func (f *accountUserCreator) CreateAdminUser(_ context.Context, params repo.CreateAdminUserParams) (repo.User, error) {
+	return repo.User{ID: 1, Email: params.Email, Role: repo.UserRoleAdmin, EmailVerified: true}, nil
+}
+
 func (f *accountUserCreator) GetUserByEmail(context.Context, string) (repo.User, error) {
 	return f.user, nil
 }

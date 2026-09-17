@@ -18,6 +18,10 @@ func TestMiddlewareAddsAuthenticatedUserID(t *testing.T) {
 		if !ok || userID != 42 {
 			t.Fatalf("expected user ID 42, got %d (present=%v)", userID, ok)
 		}
+		role, ok := Role(r.Context())
+		if !ok || role != "customer" {
+			t.Fatalf("expected customer role, got %q (present=%v)", role, ok)
+		}
 		w.WriteHeader(http.StatusNoContent)
 	})
 
@@ -66,9 +70,12 @@ func TestMiddlewareAllowsAnonymousRequestForPublicOperations(t *testing.T) {
 
 func testToken(t *testing.T, validFor time.Duration) string {
 	t.Helper()
-	claims := jwt.RegisteredClaims{
-		Subject:   "42",
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(validFor)),
+	claims := Claims{
+		Role: "customer",
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "42",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(validFor)),
+		},
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("test-jwt-secret"))
 	if err != nil {
