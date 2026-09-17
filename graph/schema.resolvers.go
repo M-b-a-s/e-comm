@@ -114,6 +114,22 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input model.Create
 	return userToModel(user), nil
 }
 
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.LoginPayload, error) {
+	result, err := r.Accounts.Login(ctx, auth.LoginInput{
+		Email:    email,
+		Password: password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.LoginPayload{
+		Token: result.Token,
+		User:  userToModel(result.User),
+	}, nil
+}
+
 // RequestEmailVerification is the resolver for the requestEmailVerification field.
 func (r *mutationResolver) RequestEmailVerification(ctx context.Context, email string) (bool, error) {
 	email = strings.ToLower(strings.TrimSpace(email))

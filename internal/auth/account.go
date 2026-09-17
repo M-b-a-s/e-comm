@@ -5,11 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -17,6 +20,9 @@ const minimumPasswordLength = 12
 
 var (
 	ErrInvalidAccountInput = errors.New("invalid account input")
+	ErrInvalidCredentials  = errors.New("invalid credentials")
+	ErrEmailNotVerified    = errors.New("email is not verified")
+	ErrJWTSecretMissing    = errors.New("JWT_SECRET is not configured")
 	usernamePattern        = regexp.MustCompile(`^[a-z0-9_]{3,30}$`)
 )
 
@@ -29,8 +35,19 @@ type AccountInput struct {
 	Username    string
 }
 
+type LoginInput struct {
+	Email    string
+	Password string
+}
+
+type LoginResult struct {
+	User  repo.User
+	Token string
+}
+
 type userCreator interface {
 	CreateUser(context.Context, repo.CreateUserParams) (repo.User, error)
+	GetUserByEmail(context.Context, string) (repo.User, error)
 }
 
 type AccountService struct {
@@ -65,6 +82,40 @@ func (s *AccountService) CreateAccount(ctx context.Context, input AccountInput) 
 	}
 
 	return user, nil
+}
+
+func (s *AccountService) Login(ctx context.Context, input LoginInput) (LoginResult, error) {
+	email := strings.ToLower(strings.TrimSpace(input.Email))
+	user, err := s.users.GetUserByEmail(ctx, email)
+	if err != nil {
+		return LoginResult{}, ErrInvalidCredentials
+	}
+
+	valid, err := VerifyPassword(input.Password, user.PasswordHash)
+	if err != nil || !valid {
+		return LoginResult{}, ErrInvalidCredentials
+	}
+	if !user.EmailVerified {
+		return LoginResult{}, ErrEmailNotVerified
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return LoginResult{}, ErrJWTSecretMissing
+	}
+
+	now := time.Now()
+	claims := jwt.RegisteredClaims{
+		Subject:   fmt.Sprintf("%d", user.ID),
+		IssuedAt:  jwt.NewNumericDate(now),
+		ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)),
+	}
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
+	if err != nil {
+		return LoginResult{}, fmt.Errorf("sign login token: %w", err)
+	}
+
+	return LoginResult{User: user, Token: token}, nil
 }
 
 func normalizeAccountInput(input AccountInput) (AccountInput, error) {

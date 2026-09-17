@@ -40,6 +40,11 @@ type CreateUserInput struct {
 	Password    string `json:"password"`
 }
 
+type LoginPayload struct {
+	Token string `json:"token"`
+	User  *User  `json:"user"`
+}
+
 type Mutation struct {
 }
 

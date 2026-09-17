@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
@@ -9,11 +10,16 @@ import (
 
 type accountUserCreator struct {
 	params repo.CreateUserParams
+	user   repo.User
 }
 
 func (f *accountUserCreator) CreateUser(_ context.Context, params repo.CreateUserParams) (repo.User, error) {
 	f.params = params
 	return repo.User{ID: 1}, nil
+}
+
+func (f *accountUserCreator) GetUserByEmail(context.Context, string) (repo.User, error) {
+	return f.user, nil
 }
 
 func TestCreateAccountNormalizesAndHashesInput(t *testing.T) {
@@ -64,5 +70,39 @@ func TestCreateAccountRejectsInvalidInputBeforePersistence(t *testing.T) {
 	}
 	if creator.params.PasswordHash != "" {
 		t.Fatal("expected invalid input not to reach persistence")
+	}
+}
+
+func TestLoginReturnsTokenForVerifiedUser(t *testing.T) {
+	t.Setenv("JWT_SECRET", "test-jwt-secret")
+	passwordHash, err := HashPassword("correct horse battery staple")
+	if err != nil {
+		t.Fatalf("hash password: %v", err)
+	}
+
+	creator := &accountUserCreator{user: repo.User{ID: 1, Email: "ada@example.com", PasswordHash: passwordHash, EmailVerified: true}}
+	result, err := NewAccountService(creator).Login(context.Background(), LoginInput{
+		Email:    " ADA@example.com ",
+		Password: "correct horse battery staple",
+	})
+	if err != nil {
+		t.Fatalf("login: %v", err)
+	}
+	if result.Token == "" || result.User.ID != 1 {
+		t.Fatalf("unexpected login result: %+v", result)
+	}
+}
+
+func TestLoginRejectsUnverifiedUser(t *testing.T) {
+	t.Setenv("JWT_SECRET", "test-jwt-secret")
+	passwordHash, err := HashPassword("correct horse battery staple")
+	if err != nil {
+		t.Fatalf("hash password: %v", err)
+	}
+
+	creator := &accountUserCreator{user: repo.User{PasswordHash: passwordHash}}
+	_, err = NewAccountService(creator).Login(context.Background(), LoginInput{Password: "correct horse battery staple"})
+	if !errors.Is(err, ErrEmailNotVerified) {
+		t.Fatalf("expected unverified error, got %v", err)
 	}
 }
