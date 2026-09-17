@@ -213,7 +213,7 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, limit *int32, offset *int32) ([]*model.User, error) {
-	if _, err := auth.RequireUserID(ctx); err != nil {
+	if err := auth.RequireRole(ctx, "admin"); err != nil {
 		return nil, err
 	}
 	userLimit := int32(20)
