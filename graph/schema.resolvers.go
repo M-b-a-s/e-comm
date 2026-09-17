@@ -177,9 +177,6 @@ func (r *mutationResolver) VerifyEmail(ctx context.Context, email string, code s
 
 // Products is the resolver for the products field.
 func (r *queryResolver) Products(ctx context.Context) ([]*model.Product, error) {
-	if err := auth.RequireProductReader(ctx); err != nil {
-		return nil, err
-	}
 	products, err := r.ProductService.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("list products: %w", err)
@@ -195,9 +192,6 @@ func (r *queryResolver) Products(ctx context.Context) ([]*model.Product, error) 
 
 // Product is the resolver for the product field.
 func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product, error) {
-	if err := auth.RequireProductReader(ctx); err != nil {
-		return nil, err
-	}
 	productID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
