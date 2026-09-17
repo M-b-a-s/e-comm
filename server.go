@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github/M-b-a-s/e-comm/graph"
+	"github/M-b-a-s/e-comm/internal/adapters/email"
+	postgres "github/M-b-a-s/e-comm/internal/adapters/postgresql"
 	repo "github/M-b-a-s/e-comm/internal/adapters/postgresql/sqlc"
 	"github/M-b-a-s/e-comm/internal/auth"
 	"github/M-b-a-s/e-comm/internal/products"
@@ -54,9 +56,13 @@ func main() {
 	}
 
 	queries := repo.New(conn)
+	otpStore := postgres.NewOTPStore(queries)
+	emailSender := email.NewSender()
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
 			Accounts:       auth.NewAccountService(queries),
+			OTPStore:       otpStore,
+			EmailSender:    emailSender,
 			ProductService: products.NewService(queries),
 			UserService:    users.NewService(queries),
 		},

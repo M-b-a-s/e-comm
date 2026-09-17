@@ -8,12 +8,22 @@ import (
 )
 
 type repository interface {
+	GetUserByEmail(context.Context, string) (repo.User, error)
 	GetUserByID(context.Context, int64) (repo.User, error)
 	ListUsers(context.Context, repo.ListUsersParams) ([]repo.User, error)
+	VerifyUserEmail(context.Context, int64) error
 }
 
 type Service struct {
 	repository repository
+}
+
+func (s *Service) GetByEmail(ctx context.Context, email string) (repo.User, error) {
+	user, err := s.repository.GetUserByEmail(ctx, email)
+	if err != nil {
+		return repo.User{}, fmt.Errorf("get user by email: %w", err)
+	}
+	return user, nil
 }
 
 func NewService(repository repository) *Service {
@@ -41,4 +51,11 @@ func (s *Service) List(ctx context.Context, limit, offset int32) ([]repo.User, e
 		return nil, fmt.Errorf("list users: %w", err)
 	}
 	return users, nil
+}
+
+func (s *Service) VerifyEmail(ctx context.Context, id int64) error {
+	if err := s.repository.VerifyUserEmail(ctx, id); err != nil {
+		return fmt.Errorf("verify email for user %d: %w", id, err)
+	}
+	return nil
 }

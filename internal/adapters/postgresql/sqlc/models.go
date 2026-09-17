@@ -60,6 +60,13 @@ type Category struct {
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
+type OtpCode struct {
+	Email      string             `json:"email"`
+	HashedCode string             `json:"hashed_code"`
+	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
+	Attempts   int32              `json:"attempts"`
+}
+
 type Product struct {
 	ID                    int64            `json:"id"`
 	Name                  string           `json:"name"`

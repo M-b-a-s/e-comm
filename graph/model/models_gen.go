@@ -64,18 +64,18 @@ type Query struct {
 }
 
 type UpdateProductInput struct {
-	Name                  string      `json:"name"`
-	PriceInCents          int32       `json:"priceInCents"`
-	Slug                  string      `json:"slug"`
-	ShortName             string      `json:"shortName"`
-	CategoryID            int32       `json:"categoryId"`
-	IsNew                 bool        `json:"isNew"`
-	Description           string      `json:"description"`
-	Features              string      `json:"features"`
-	BoxIncludes           scalar.JSON `json:"boxIncludes"`
-	Gallery               scalar.JSON `json:"gallery"`
-	CategoryImage         string      `json:"categoryImage"`
-	RecommendedProductIds []int32     `json:"recommendedProductIds"`
+	Name                  string          `json:"name"`
+	PriceInCents          int32           `json:"priceInCents"`
+	Slug                  string          `json:"slug"`
+	ShortName             string          `json:"shortName"`
+	CategoryID            int32           `json:"categoryId"`
+	IsNew                 bool            `json:"isNew"`
+	Description           string          `json:"description"`
+	Features              string          `json:"features"`
+	BoxIncludes           []*BoxItemInput `json:"boxIncludes"`
+	Gallery               scalar.JSON     `json:"gallery"`
+	CategoryImage         string          `json:"categoryImage"`
+	RecommendedProductIds []int32         `json:"recommendedProductIds"`
 }
 
 type User struct {

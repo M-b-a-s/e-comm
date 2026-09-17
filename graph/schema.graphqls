@@ -95,4 +95,6 @@ type Mutation {
   deleteProduct(id: ID!): Product!
 
   createAccount(input: CreateUserInput!): User!
+  requestEmailVerification(email: String!): Boolean!
+  verifyEmail(email: String!, code: String!): Boolean!
 }

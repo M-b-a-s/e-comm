@@ -13,19 +13,23 @@ import (
 type Querier interface {
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteOTP(ctx context.Context, email string) error
 	DeleteProduct(ctx context.Context, id int64) (Product, error)
 	GetCategoryBySlug(ctx context.Context, slug string) (Category, error)
 	GetFeaturedProduct(ctx context.Context) (Product, error)
+	GetOTP(ctx context.Context, email string) (GetOTPRow, error)
 	GetProductByID(ctx context.Context, id int64) (Product, error)
 	GetProductBySlug(ctx context.Context, slug pgtype.Text) (Product, error)
 	GetRecommendedProducts(ctx context.Context, id int64) ([]Product, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	IncrementOTPAttempts(ctx context.Context, email string) error
 	ListCategories(ctx context.Context) ([]Category, error)
 	ListProducts(ctx context.Context) ([]Product, error)
 	ListProductsByCategory(ctx context.Context, slug string) ([]Product, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	SaveOTP(ctx context.Context, arg SaveOTPParams) error
 	SoftDeleteUser(ctx context.Context, id int64) error
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error

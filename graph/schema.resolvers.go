@@ -11,8 +11,10 @@ import (
 	"fmt"
 	"github/M-b-a-s/e-comm/graph/model"
 	"github/M-b-a-s/e-comm/internal/auth"
+	"github/M-b-a-s/e-comm/internal/otp"
 	productsvc "github/M-b-a-s/e-comm/internal/products"
 	"strconv"
+	"strings"
 )
 
 // CreateProduct is the resolver for the createProduct field.
@@ -105,8 +107,47 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input model.Create
 	if err != nil {
 		return nil, err
 	}
+	if err := otp.IssueAndSend(r.OTPStore, r.EmailSender, user.Email); err != nil {
+		return nil, fmt.Errorf("send account verification email: %w", err)
+	}
 
 	return userToModel(user), nil
+}
+
+// RequestEmailVerification is the resolver for the requestEmailVerification field.
+func (r *mutationResolver) RequestEmailVerification(ctx context.Context, email string) (bool, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	user, err := r.UserService.GetByEmail(ctx, email)
+	if err != nil {
+		return false, err
+	}
+	if user.EmailVerified {
+		return true, nil
+	}
+	if err := otp.IssueAndSend(r.OTPStore, r.EmailSender, email); err != nil {
+		return false, fmt.Errorf("request email verification: %w", err)
+	}
+	return true, nil
+}
+
+// VerifyEmail is the resolver for the verifyEmail field.
+func (r *mutationResolver) VerifyEmail(ctx context.Context, email string, code string) (bool, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	user, err := r.UserService.GetByEmail(ctx, email)
+	if err != nil {
+		return false, err
+	}
+	valid, err := otp.Verify(r.OTPStore, email, code)
+	if err != nil {
+		return false, err
+	}
+	if !valid {
+		return false, nil
+	}
+	if err := r.UserService.VerifyEmail(ctx, user.ID); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Products is the resolver for the products field.
