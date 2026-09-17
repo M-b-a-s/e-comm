@@ -53,7 +53,7 @@ input UpdateProductInput {
   isNew: Boolean!
   description: String!
   features: String!
-  boxIncludes: JSON!
+  boxIncludes: [BoxItemInput!]!
   gallery: JSON!
   categoryImage: String!
   recommendedProductIds: [Int!]!

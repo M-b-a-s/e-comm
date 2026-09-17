@@ -50,6 +50,11 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
 	}
 
+	boxIncludes, err := json.Marshal(input.BoxIncludes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal box includes: %w", err)
+	}
+
 	product, err := r.ProductService.Update(ctx, productID, productsvc.Input{
 		Name:                  input.Name,
 		PriceInCents:          input.PriceInCents,
@@ -59,7 +64,7 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 		IsNew:                 input.IsNew,
 		Description:           input.Description,
 		Features:              input.Features,
-		BoxIncludes:           []byte(input.BoxIncludes),
+		BoxIncludes:           boxIncludes,
 		Gallery:               []byte(input.Gallery),
 		CategoryImage:         input.CategoryImage,
 		RecommendedProductIDs: idsToInt64s(input.RecommendedProductIds),
