@@ -19,6 +19,9 @@ import (
 
 // CreateProduct is the resolver for the createProduct field.
 func (r *mutationResolver) CreateProduct(ctx context.Context, input model.CreateProductInput) (*model.Product, error) {
+	if _, err := auth.RequireUserID(ctx); err != nil {
+		return nil, err
+	}
 	boxIncludes, err := json.Marshal(input.BoxIncludes)
 	if err != nil {
 		return nil, fmt.Errorf("marshal box includes: %w", err)
@@ -47,6 +50,9 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, input model.Create
 
 // UpdateProduct is the resolver for the updateProduct field.
 func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input model.UpdateProductInput) (*model.Product, error) {
+	if _, err := auth.RequireUserID(ctx); err != nil {
+		return nil, err
+	}
 	productID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
@@ -81,6 +87,9 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input m
 
 // DeleteProduct is the resolver for the deleteProduct field.
 func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (*model.Product, error) {
+	if _, err := auth.RequireUserID(ctx); err != nil {
+		return nil, err
+	}
 	productID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid product ID %q: %w", id, err)
@@ -198,6 +207,9 @@ func (r *queryResolver) Product(ctx context.Context, id string) (*model.Product,
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context, limit *int32, offset *int32) ([]*model.User, error) {
+	if _, err := auth.RequireUserID(ctx); err != nil {
+		return nil, err
+	}
 	userLimit := int32(20)
 	if limit != nil {
 		userLimit = *limit

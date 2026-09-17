@@ -84,7 +84,7 @@ func main() {
 	mux.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, corsMiddleware(mux)))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, corsMiddleware(auth.Middleware(mux))))
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
